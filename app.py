@@ -1,5 +1,6 @@
 import os
 import tempfile
+import logging
 from flask import Flask, request, jsonify, render_template
 import camelot
 import pandas as pd
@@ -9,6 +10,10 @@ from PIL import Image
 
 app = Flask(__name__)
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB max file size
+
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 def extract_situaciones(pdf_path, pages="all"):
     """
@@ -227,8 +232,13 @@ def extract_pdf():
 
 def extract_images():
     """Extract data from multiple images using OCR"""
+    logger.info("=== Starting image extraction ===")
+    
     files = request.files.getlist('images')
+    logger.info(f"Received {len(files)} files")
+    
     if not files or all(f.filename == '' for f in files):
+        logger.error("No images selected")
         return jsonify({'error': 'No images selected'}), 400
     
     # Filter valid image files
@@ -236,39 +246,51 @@ def extract_images():
     for file in files:
         if file.filename and file.filename.lower().endswith(('.jpg', '.jpeg', '.png')):
             valid_files.append(file)
+            logger.info(f"Valid image: {file.filename}")
     
     if not valid_files:
+        logger.error("No valid image files found")
         return jsonify({'error': 'No valid image files found'}), 400
+    
+    logger.info(f"Processing {len(valid_files)} valid images")
     
     all_data = []
     image_results = []
     
-    for file in valid_files:
+    for i, file in enumerate(valid_files):
+        logger.info(f"=== Processing image {i+1}/{len(valid_files)}: {file.filename} ===")
+        
         # Save image to temporary location
         with tempfile.NamedTemporaryFile(delete=False, suffix='.jpg') as temp_file:
             file.save(temp_file.name)
             temp_path = temp_file.name
+            logger.info(f"Saved to temp path: {temp_path}")
         
         try:
             # Process image with OCR
-            print(f"Processing image: {file.filename}")
+            logger.info(f"Calling OCR processor for {file.filename}")
             ocr_records = process_image_with_ocr(temp_path)
-            print(f"OCR returned {len(ocr_records)} records for {file.filename}")
+            logger.info(f"OCR returned {len(ocr_records)} records for {file.filename}")
+            
+            if not ocr_records:
+                logger.warning(f"No records extracted from {file.filename}")
             
             # Convert OCR format to our format
             image_data = []
-            for record in ocr_records:
+            for j, record in enumerate(ocr_records):
+                logger.info(f"Record {j+1}: {record}")
                 image_data.append({
                     "type": "vacation" if record["isVacaciones"] else "contract",
                     "fechaAlta": record["fechaAlta"],
                     "fechaBaja": record["fechaBaja"]
                 })
-            print(f"Converted to {len(image_data)} image_data records")
+            logger.info(f"Converted to {len(image_data)} image_data records")
             
             # Convert image to base64 for preview
             import base64
             with open(temp_path, "rb") as img_file:
                 img_base64 = base64.b64encode(img_file.read()).decode('utf-8')
+                logger.info(f"Created base64 image ({len(img_base64)} chars)")
             
             image_results.append({
                 "filename": file.filename,
@@ -277,10 +299,26 @@ def extract_images():
             })
             
             all_data.extend(image_data)
+            logger.info(f"Total data so far: {len(all_data)} records")
+            
+        except Exception as e:
+            logger.error(f"Error processing {file.filename}: {str(e)}", exc_info=True)
+            # Continue with other images even if one fails
+            image_results.append({
+                "filename": file.filename,
+                "data": [],
+                "image_base64": ""
+            })
             
         finally:
             # Clean up temporary file
-            os.unlink(temp_path)
+            try:
+                os.unlink(temp_path)
+                logger.info(f"Cleaned up temp file: {temp_path}")
+            except Exception as e:
+                logger.warning(f"Could not clean up temp file {temp_path}: {e}")
+    
+    logger.info(f"=== Image extraction complete. Total records: {len(all_data)} ===")
     
     return jsonify({
         "data": all_data,

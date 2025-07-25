@@ -4,6 +4,11 @@ import json
 import requests
 from typing import List, Dict
 import datetime
+import logging
+
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 OPENROUTER_API_KEY = os.getenv('OPENROUTER_API_KEY', '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')
 OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions"
@@ -157,57 +162,57 @@ The response will be automatically structured according to the defined JSON sche
     }
     
     try:
-        print(f"Making API request for {image_path}...")
-        print(f"Using API key: {OPENROUTER_API_KEY[:20]}...")
-        print(f"Payload model: {payload['model']}")
+        logger.info(f"Making API request for {image_path}...")
+        logger.info(f"Using API key: {OPENROUTER_API_KEY[:20]}...")
+        logger.info(f"Payload model: {payload['model']}")
         
         response = requests.post(OPENROUTER_URL, headers=headers, json=payload, timeout=60)
-        print(f"Response status: {response.status_code}")
+        logger.info(f"Response status: {response.status_code}")
         
         response.raise_for_status()
         
         result = response.json()
-        print(f"API response keys: {list(result.keys())}")
+        logger.info(f"API response keys: {list(result.keys())}")
         
         if 'choices' not in result or not result['choices']:
-            print(f"No choices in response: {result}")
+            logger.error(f"No choices in response: {result}")
             return []
             
         content = result['choices'][0]['message']['content']
-        print(f"Raw API response content: {content[:500]}...")
+        logger.info(f"Raw API response content: {content[:500]}...")
         
         # Parse structured JSON response
         try:
             data = json.loads(content)
             # Extract records from structured response
             records = data.get('records', [])
-            print(f"Successfully processed {image_path}: {len(records)} records found")
+            logger.info(f"Successfully processed {image_path}: {len(records)} records found")
             
             # Log each extracted record for verification
-            print(f"--- Records from {image_path} ---")
+            logger.info(f"--- Records from {image_path} ---")
             for i, record in enumerate(records, 1):
                 vacation_type = "VACATION" if record.get('isVacaciones') else "CONTRACT"
-                print(f"  {i:2d}. {vacation_type:8s} | {record.get('fechaAlta', 'N/A'):10s} to {record.get('fechaBaja', 'N/A'):10s}")
-            print("--- End records ---\n")
+                logger.info(f"  {i:2d}. {vacation_type:8s} | {record.get('fechaAlta', 'N/A'):10s} to {record.get('fechaBaja', 'N/A'):10s}")
+            logger.info("--- End records ---")
             
             return records
             
         except json.JSONDecodeError as e:
-            print(f"Error parsing JSON from {image_path}: {e}")
-            print(f"Raw content: {content}")
+            logger.error(f"Error parsing JSON from {image_path}: {e}")
+            logger.error(f"Raw content: {content}")
             # Try to extract records from non-JSON response
             if "VACACIONES" in content or "SERVICIO DE SALUD" in content:
-                print("Found keywords in response, but couldn't parse JSON. Manual extraction needed.")
+                logger.warning("Found keywords in response, but couldn't parse JSON. Manual extraction needed.")
             return []
             
     except requests.exceptions.RequestException as e:
-        print(f"Error processing {image_path}: {e}")
+        logger.error(f"Error processing {image_path}: {e}")
         if hasattr(e, 'response') and e.response is not None:
             try:
                 error_details = e.response.json()
-                print(f"Error details: {error_details}")
+                logger.error(f"Error details: {error_details}")
             except:
-                print(f"Error response text: {e.response.text[:500]}...")
+                logger.error(f"Error response text: {e.response.text[:500]}...")
         return []
 
 def process_all_images(images_dir: str = "data/imagenes") -> List[Dict]:
