@@ -163,6 +163,7 @@ The response will be automatically structured according to the defined JSON sche
     
     try:
         logger.info(f"Making API request for {image_path}...")
+        logger.info(f"Environment variable set: {os.getenv('OPENROUTER_API_KEY') is not None}")
         logger.info(f"Using API key: {OPENROUTER_API_KEY[:20]}...")
         logger.info(f"Payload model: {payload['model']}")
         
