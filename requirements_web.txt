@@ -1,7 +1,8 @@
 Flask==2.3.3
+numpy==1.24.3
+pandas==1.5.3
 camelot-py[cv]==0.10.1
-pandas==2.0.3
-opencv-python==4.8.1.78
+opencv-python-headless==4.8.1.78
 ghostscript==0.7
 Pillow==10.0.0
 requests==2.31.0
