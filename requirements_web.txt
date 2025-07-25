@@ -1,0 +1,5 @@
+Flask==2.3.3
+camelot-py[cv]==0.10.1
+pandas==2.0.3
+opencv-python==4.8.1.78
+ghostscript==0.7
