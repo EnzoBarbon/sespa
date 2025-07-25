@@ -7,7 +7,7 @@
     <style>
         body {
             font-family: Arial, sans-serif;
-            max-width: 1200px;
+            max-width: 1400px;
             margin: 0 auto;
             padding: 20px;
             background-color: #f5f5f5;
@@ -23,11 +23,37 @@
             text-align: center;
             margin-bottom: 30px;
         }
+        .step {
+            margin-bottom: 40px;
+            padding: 20px;
+            border: 2px solid #e9ecef;
+            border-radius: 10px;
+        }
+        .step.active {
+            border-color: #007bff;
+            background-color: #f8f9ff;
+        }
+        .step-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .step-number {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background-color: #007bff;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            margin-right: 10px;
+        }
         .upload-section {
             border: 2px dashed #ddd;
             padding: 30px;
             text-align: center;
-            margin-bottom: 30px;
             border-radius: 5px;
         }
         .upload-section:hover {
@@ -44,6 +70,7 @@
             border-radius: 5px;
             cursor: pointer;
             font-size: 16px;
+            margin: 5px;
         }
         button:hover {
             background-color: #0056b3;
@@ -52,12 +79,69 @@
             background-color: #ccc;
             cursor: not-allowed;
         }
+        button.success {
+            background-color: #28a745;
+        }
+        button.success:hover {
+            background-color: #218838;
+        }
         .loading {
             display: none;
             text-align: center;
             margin: 20px 0;
         }
-        .results {
+        .error {
+            color: #dc3545;
+            background-color: #f8d7da;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+        .editable-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        .editable-table th, .editable-table td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        .editable-table th {
+            background-color: #f8f9fa;
+            font-weight: bold;
+        }
+        .editable-table select, .editable-table input[type="date"] {
+            width: 100%;
+            padding: 5px;
+            border: 1px solid #ddd;
+            border-radius: 3px;
+        }
+        .vacation-row {
+            background-color: #fff3cd;
+        }
+        .contract-row {
+            background-color: #d1ecf1;
+        }
+        .remove-btn {
+            background-color: #dc3545;
+            color: white;
+            border: none;
+            border-radius: 3px;
+            padding: 5px 10px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+        .remove-btn:hover {
+            background-color: #c82333;
+        }
+        .add-row-section {
+            margin: 20px 0;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-radius: 5px;
+        }
+        .results-section {
             display: none;
             margin-top: 30px;
         }
@@ -71,32 +155,120 @@
             margin-top: 0;
             color: #0056b3;
         }
-        .periods-table {
+        .results-table {
             width: 100%;
             border-collapse: collapse;
             margin-top: 20px;
         }
-        .periods-table th, .periods-table td {
+        .results-table th, .results-table td {
             border: 1px solid #ddd;
             padding: 12px;
             text-align: left;
         }
-        .periods-table th {
+        .results-table th {
             background-color: #f8f9fa;
             font-weight: bold;
         }
-        .vacation-row {
-            background-color: #fff3cd;
-        }
-        .contract-row {
-            background-color: #d1ecf1;
-        }
-        .error {
-            color: #dc3545;
-            background-color: #f8d7da;
-            padding: 15px;
-            border-radius: 5px;
+        .image-preview-section {
+            display: none;
             margin: 20px 0;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            background-color: #f9f9f9;
+        }
+        .image-preview {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            margin-top: 20px;
+        }
+        .image-item {
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            padding: 15px;
+            background-color: white;
+            max-width: 500px;
+        }
+        .image-item img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 3px;
+        }
+        .image-item h4 {
+            margin: 0 0 10px 0;
+            color: #333;
+        }
+        .image-data {
+            margin-top: 10px;
+        }
+        .image-data table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 12px;
+        }
+        .image-data table th,
+        .image-data table td {
+            border: 1px solid #ddd;
+            padding: 5px;
+            text-align: left;
+        }
+        .image-data table th {
+            background-color: #f0f0f0;
+        }
+        .image-editable-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+            font-size: 12px;
+        }
+        .image-editable-table th, .image-editable-table td {
+            border: 1px solid #ddd;
+            padding: 6px;
+            text-align: left;
+        }
+        .image-editable-table th {
+            background-color: #f8f9fa;
+            font-weight: bold;
+        }
+        .image-editable-table select, .image-editable-table input[type="date"] {
+            width: 100%;
+            padding: 3px;
+            border: 1px solid #ddd;
+            border-radius: 3px;
+            font-size: 11px;
+        }
+        .image-remove-btn {
+            background-color: #dc3545;
+            color: white;
+            border: none;
+            border-radius: 3px;
+            padding: 3px 8px;
+            cursor: pointer;
+            font-size: 10px;
+        }
+        .image-remove-btn:hover {
+            background-color: #c82333;
+        }
+        .image-add-section {
+            margin-top: 10px;
+            padding: 10px;
+            background-color: #f8f9fa;
+            border-radius: 3px;
+        }
+        .image-add-section select, .image-add-section input {
+            margin: 2px;
+            padding: 3px;
+            font-size: 11px;
+        }
+        .image-add-btn {
+            background-color: #28a745;
+            color: white;
+            border: none;
+            border-radius: 3px;
+            padding: 4px 8px;
+            cursor: pointer;
+            font-size: 10px;
         }
     </style>
 </head>
@@ -104,44 +276,100 @@
     <div class="container">
         <h1>📄 Extractor de Vida Laboral</h1>
         
-        <div class="upload-section">
-            <h3>Subir PDF de Vida Laboral</h3>
-            <p>Selecciona el archivo PDF del informe de vida laboral</p>
-            <form id="uploadForm" enctype="multipart/form-data">
-                <input type="file" id="pdfFile" name="pdf" accept=".pdf" required>
-                <br><br>
-                <button type="submit" id="processBtn">Procesar PDF</button>
-            </form>
-        </div>
+        <!-- Step 1: Extract Data -->
+        <div class="step active" id="step1">
+            <div class="step-header">
+                <div class="step-number">1</div>
+                <h2>Extraer Datos</h2>
+            </div>
+            
+            <div class="upload-options">
+                <div class="upload-section">
+                    <h3>Opción 1: Subir PDF de Vida Laboral</h3>
+                    <p>Selecciona el archivo PDF del informe de vida laboral</p>
+                    <form id="extractPdfForm" enctype="multipart/form-data">
+                        <input type="file" id="pdfFile" name="pdf" accept=".pdf">
+                        <br><br>
+                        <button type="submit" id="extractPdfBtn">Extraer desde PDF</button>
+                    </form>
+                </div>
 
-        <div class="loading" id="loading">
-            <p>⏳ Procesando PDF... Por favor espera.</p>
-        </div>
-
-        <div class="error" id="error" style="display: none;"></div>
-
-        <div class="results" id="results">
-            <div class="summary-card">
-                <h3>📊 Resumen</h3>
-                <p><strong>Total de días de vacaciones no solapados:</strong> <span id="totalDays">0</span> días</p>
-                <p><strong>Número de períodos de vacaciones:</strong> <span id="totalPeriods">0</span> períodos</p>
+                <div class="upload-section" style="margin-top: 20px;">
+                    <h3>Opción 2: Subir Imágenes</h3>
+                    <p>Selecciona múltiples imágenes del informe de vida laboral</p>
+                    <form id="extractImagesForm" enctype="multipart/form-data">
+                        <input type="file" id="imageFiles" name="images" accept=".jpg,.jpeg,.png" multiple>
+                        <br><br>
+                        <button type="submit" id="extractImagesBtn">Extraer desde Imágenes</button>
+                    </form>
+                </div>
             </div>
 
-            <h3>📋 Datos Extraídos</h3>
-            <table class="periods-table" id="dataTable">
+            <div class="loading" id="extractLoading">
+                <p>⏳ Extrayendo datos... Por favor espera.</p>
+            </div>
+
+            <!-- Image Preview Section -->
+            <div class="image-preview-section" id="imagePreviewSection">
+                <h3>📸 Imágenes Procesadas</h3>
+                <p>Revisa las imágenes y los datos extraídos de cada una:</p>
+                <div class="image-preview" id="imagePreview">
+                </div>
+            </div>
+        </div>
+
+        <!-- Step 2: Edit Data -->
+        <div class="step" id="step2">
+            <div class="step-header">
+                <div class="step-number">2</div>
+                <h2>Revisar y Editar Datos Extraídos</h2>
+            </div>
+            
+            <p>Revisa los datos extraídos y realiza cualquier corrección necesaria:</p>
+            
+            <table class="editable-table" id="editableTable">
                 <thead>
                     <tr>
                         <th>Tipo</th>
                         <th>Fecha Alta</th>
                         <th>Fecha Baja</th>
+                        <th>Acciones</th>
                     </tr>
                 </thead>
-                <tbody id="dataTableBody">
+                <tbody id="editableTableBody">
                 </tbody>
             </table>
 
+            <div class="add-row-section">
+                <h4>Agregar Nueva Fila</h4>
+                <select id="newRowType">
+                    <option value="vacation">Vacaciones</option>
+                    <option value="contract">Contrato</option>
+                </select>
+                <input type="date" id="newRowFechaAlta" placeholder="Fecha Alta">
+                <input type="date" id="newRowFechaBaja" placeholder="Fecha Baja">
+                <button onclick="addNewRow()">Agregar Fila</button>
+            </div>
+
+            <div style="text-align: center; margin-top: 30px;">
+                <button id="calculateBtn" class="success" onclick="calculateVacationDays()">Calcular Días de Vacaciones</button>
+            </div>
+
+            <div class="loading" id="calculateLoading">
+                <p>⏳ Calculando días de vacaciones... Por favor espera.</p>
+            </div>
+        </div>
+
+        <!-- Results -->
+        <div class="results-section" id="results">
+            <div class="summary-card">
+                <h3>📊 Resultados</h3>
+                <p><strong>Total de días de vacaciones no solapados:</strong> <span id="totalDays">0</span> días</p>
+                <p><strong>Número de períodos de vacaciones:</strong> <span id="totalPeriods">0</span> períodos</p>
+            </div>
+
             <h3>🏖️ Períodos de Vacaciones No Solapados</h3>
-            <table class="periods-table" id="vacationTable">
+            <table class="results-table" id="vacationTable">
                 <thead>
                     <tr>
                         <th>Fecha Inicio</th>
@@ -153,10 +381,16 @@
                 </tbody>
             </table>
         </div>
+
+        <div class="error" id="error" style="display: none;"></div>
     </div>
 
     <script>
-        document.getElementById('uploadForm').addEventListener('submit', async function(e) {
+        let extractedData = [];
+        let imageResults = [];
+
+        // Step 1: Extract data from PDF
+        document.getElementById('extractPdfForm').addEventListener('submit', async function(e) {
             e.preventDefault();
             
             const fileInput = document.getElementById('pdfFile');
@@ -170,13 +404,37 @@
             const formData = new FormData();
             formData.append('pdf', file);
 
-            document.getElementById('processBtn').disabled = true;
-            document.getElementById('loading').style.display = 'block';
-            document.getElementById('results').style.display = 'none';
+            await extractData(formData, 'extractPdfBtn');
+        });
+
+        // Step 1: Extract data from images
+        document.getElementById('extractImagesForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const fileInput = document.getElementById('imageFiles');
+            const files = fileInput.files;
+            
+            if (!files || files.length === 0) {
+                alert('Por favor selecciona al menos una imagen');
+                return;
+            }
+
+            const formData = new FormData();
+            for (let i = 0; i < files.length; i++) {
+                formData.append('images', files[i]);
+            }
+
+            await extractData(formData, 'extractImagesBtn');
+        });
+
+        async function extractData(formData, buttonId) {
+            document.getElementById(buttonId).disabled = true;
+            document.getElementById('extractLoading').style.display = 'block';
             document.getElementById('error').style.display = 'none';
+            document.getElementById('imagePreviewSection').style.display = 'none';
 
             try {
-                const response = await fetch('/process', {
+                const response = await fetch('/extract', {
                     method: 'POST',
                     body: formData
                 });
@@ -184,7 +442,307 @@
                 const result = await response.json();
 
                 if (!response.ok) {
-                    throw new Error(result.error || 'Error procesando el PDF');
+                    throw new Error(result.error || 'Error extrayendo datos');
+                }
+
+                extractedData = result.data;
+                
+                // Handle image results if present
+                if (result.source === 'images' && result.image_results) {
+                    imageResults = result.image_results;
+                    displayImagePreviews();
+                }
+                
+                populateEditableTable();
+                activateStep2();
+                
+            } catch (error) {
+                document.getElementById('error').textContent = 'Error: ' + error.message;
+                document.getElementById('error').style.display = 'block';
+            } finally {
+                document.getElementById(buttonId).disabled = false;
+                document.getElementById('extractLoading').style.display = 'none';
+            }
+        }
+
+        function populateEditableTable() {
+            const tbody = document.getElementById('editableTableBody');
+            tbody.innerHTML = '';
+
+            extractedData.forEach((item, index) => {
+                addRowToTable(item, index);
+            });
+        }
+
+        function addRowToTable(item, index) {
+            const tbody = document.getElementById('editableTableBody');
+            const row = tbody.insertRow();
+            row.className = item.type === 'vacation' ? 'vacation-row' : 'contract-row';
+            row.dataset.index = index;
+
+            // Type cell
+            const typeCell = row.insertCell(0);
+            const typeSelect = document.createElement('select');
+            typeSelect.innerHTML = `
+                <option value="vacation" ${item.type === 'vacation' ? 'selected' : ''}>Vacaciones</option>
+                <option value="contract" ${item.type === 'contract' ? 'selected' : ''}>Contrato</option>
+            `;
+            typeSelect.onchange = function() {
+                extractedData[index].type = this.value;
+                row.className = this.value === 'vacation' ? 'vacation-row' : 'contract-row';
+            };
+            typeCell.appendChild(typeSelect);
+
+            // Fecha Alta cell
+            const fechaAltaCell = row.insertCell(1);
+            const fechaAltaInput = document.createElement('input');
+            fechaAltaInput.type = 'date';
+            fechaAltaInput.value = convertToDateInput(item.fechaAlta);
+            fechaAltaInput.onchange = function() {
+                extractedData[index].fechaAlta = convertFromDateInput(this.value);
+            };
+            fechaAltaCell.appendChild(fechaAltaInput);
+
+            // Fecha Baja cell
+            const fechaBajaCell = row.insertCell(2);
+            const fechaBajaInput = document.createElement('input');
+            fechaBajaInput.type = 'date';
+            fechaBajaInput.value = convertToDateInput(item.fechaBaja);
+            fechaBajaInput.onchange = function() {
+                extractedData[index].fechaBaja = convertFromDateInput(this.value);
+            };
+            fechaBajaCell.appendChild(fechaBajaInput);
+
+            // Actions cell
+            const actionsCell = row.insertCell(3);
+            const removeBtn = document.createElement('button');
+            removeBtn.className = 'remove-btn';
+            removeBtn.textContent = 'Eliminar';
+            removeBtn.onclick = function() {
+                removeRow(index);
+            };
+            actionsCell.appendChild(removeBtn);
+        }
+
+        function convertToDateInput(dateStr) {
+            if (!dateStr) return '';
+            // Convert DD/MM/YYYY to YYYY-MM-DD
+            const parts = dateStr.split('/');
+            if (parts.length === 3) {
+                return `${parts[2]}-${parts[1].padStart(2, '0')}-${parts[0].padStart(2, '0')}`;
+            }
+            return '';
+        }
+
+        function convertFromDateInput(dateStr) {
+            if (!dateStr) return '';
+            // Convert YYYY-MM-DD to DD/MM/YYYY
+            const parts = dateStr.split('-');
+            if (parts.length === 3) {
+                return `${parts[2]}/${parts[1]}/${parts[0]}`;
+            }
+            return '';
+        }
+
+        function addNewRow() {
+            const type = document.getElementById('newRowType').value;
+            const fechaAlta = convertFromDateInput(document.getElementById('newRowFechaAlta').value);
+            const fechaBaja = convertFromDateInput(document.getElementById('newRowFechaBaja').value);
+
+            const newItem = {
+                type: type,
+                fechaAlta: fechaAlta,
+                fechaBaja: fechaBaja
+            };
+
+            extractedData.push(newItem);
+            addRowToTable(newItem, extractedData.length - 1);
+
+            // Clear inputs
+            document.getElementById('newRowFechaAlta').value = '';
+            document.getElementById('newRowFechaBaja').value = '';
+        }
+
+        function removeRow(index) {
+            extractedData.splice(index, 1);
+            populateEditableTable(); // Refresh table with updated indices
+        }
+
+        function displayImagePreviews() {
+            const previewContainer = document.getElementById('imagePreview');
+            previewContainer.innerHTML = '';
+            
+            imageResults.forEach((imageResult, imageIndex) => {
+                const imageItem = document.createElement('div');
+                imageItem.className = 'image-item';
+                
+                imageItem.innerHTML = `
+                    <h4>${imageResult.filename}</h4>
+                    <img src="data:image/jpeg;base64,${imageResult.image_base64}" alt="${imageResult.filename}">
+                    <div class="image-data">
+                        <h5>Editar datos de esta imagen:</h5>
+                        <table class="image-editable-table" id="imageTable_${imageIndex}">
+                            <thead>
+                                <tr>
+                                    <th>Tipo</th>
+                                    <th>Fecha Alta</th>
+                                    <th>Fecha Baja</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody id="imageTableBody_${imageIndex}">
+                            </tbody>
+                        </table>
+                        <div class="image-add-section">
+                            <select id="imageNewRowType_${imageIndex}">
+                                <option value="vacation">Vacaciones</option>
+                                <option value="contract">Contrato</option>
+                            </select>
+                            <input type="date" id="imageNewRowFechaAlta_${imageIndex}" placeholder="Fecha Alta">
+                            <input type="date" id="imageNewRowFechaBaja_${imageIndex}" placeholder="Fecha Baja">
+                            <button class="image-add-btn" onclick="addImageRow(${imageIndex})">Agregar</button>
+                        </div>
+                    </div>
+                `;
+                
+                previewContainer.appendChild(imageItem);
+                
+                // Populate the editable table for this image
+                populateImageTable(imageIndex, imageResult.data);
+            });
+            
+            document.getElementById('imagePreviewSection').style.display = 'block';
+        }
+
+        function populateImageTable(imageIndex, data) {
+            const tbody = document.getElementById(`imageTableBody_${imageIndex}`);
+            tbody.innerHTML = '';
+
+            data.forEach((item, rowIndex) => {
+                addImageRowToTable(imageIndex, item, rowIndex);
+            });
+        }
+
+        function addImageRowToTable(imageIndex, item, rowIndex) {
+            const tbody = document.getElementById(`imageTableBody_${imageIndex}`);
+            const row = tbody.insertRow();
+            row.className = item.type === 'vacation' ? 'vacation-row' : 'contract-row';
+            row.dataset.imageIndex = imageIndex;
+            row.dataset.rowIndex = rowIndex;
+
+            // Type cell
+            const typeCell = row.insertCell(0);
+            const typeSelect = document.createElement('select');
+            typeSelect.innerHTML = `
+                <option value="vacation" ${item.type === 'vacation' ? 'selected' : ''}>Vacaciones</option>
+                <option value="contract" ${item.type === 'contract' ? 'selected' : ''}>Contrato</option>
+            `;
+            typeSelect.onchange = function() {
+                imageResults[imageIndex].data[rowIndex].type = this.value;
+                row.className = this.value === 'vacation' ? 'vacation-row' : 'contract-row';
+                updateExtractedData();
+            };
+            typeCell.appendChild(typeSelect);
+
+            // Fecha Alta cell
+            const fechaAltaCell = row.insertCell(1);
+            const fechaAltaInput = document.createElement('input');
+            fechaAltaInput.type = 'date';
+            fechaAltaInput.value = convertToDateInput(item.fechaAlta);
+            fechaAltaInput.onchange = function() {
+                imageResults[imageIndex].data[rowIndex].fechaAlta = convertFromDateInput(this.value);
+                updateExtractedData();
+            };
+            fechaAltaCell.appendChild(fechaAltaInput);
+
+            // Fecha Baja cell
+            const fechaBajaCell = row.insertCell(2);
+            const fechaBajaInput = document.createElement('input');
+            fechaBajaInput.type = 'date';
+            fechaBajaInput.value = convertToDateInput(item.fechaBaja);
+            fechaBajaInput.onchange = function() {
+                imageResults[imageIndex].data[rowIndex].fechaBaja = convertFromDateInput(this.value);
+                updateExtractedData();
+            };
+            fechaBajaCell.appendChild(fechaBajaInput);
+
+            // Actions cell
+            const actionsCell = row.insertCell(3);
+            const removeBtn = document.createElement('button');
+            removeBtn.className = 'image-remove-btn';
+            removeBtn.textContent = 'X';
+            removeBtn.onclick = function() {
+                removeImageRow(imageIndex, rowIndex);
+            };
+            actionsCell.appendChild(removeBtn);
+        }
+
+        function addImageRow(imageIndex) {
+            const type = document.getElementById(`imageNewRowType_${imageIndex}`).value;
+            const fechaAlta = convertFromDateInput(document.getElementById(`imageNewRowFechaAlta_${imageIndex}`).value);
+            const fechaBaja = convertFromDateInput(document.getElementById(`imageNewRowFechaBaja_${imageIndex}`).value);
+
+            const newItem = {
+                type: type,
+                fechaAlta: fechaAlta,
+                fechaBaja: fechaBaja
+            };
+
+            imageResults[imageIndex].data.push(newItem);
+            addImageRowToTable(imageIndex, newItem, imageResults[imageIndex].data.length - 1);
+            updateExtractedData();
+
+            // Clear inputs
+            document.getElementById(`imageNewRowFechaAlta_${imageIndex}`).value = '';
+            document.getElementById(`imageNewRowFechaBaja_${imageIndex}`).value = '';
+        }
+
+        function removeImageRow(imageIndex, rowIndex) {
+            imageResults[imageIndex].data.splice(rowIndex, 1);
+            populateImageTable(imageIndex, imageResults[imageIndex].data);
+            updateExtractedData();
+        }
+
+        function updateExtractedData() {
+            // Rebuild extractedData from all image results
+            extractedData = [];
+            imageResults.forEach(imageResult => {
+                extractedData.push(...imageResult.data);
+            });
+            
+            // Update the main editable table if it exists
+            if (document.getElementById('editableTableBody')) {
+                populateEditableTable();
+            }
+        }
+
+        function activateStep2() {
+            document.getElementById('step1').classList.remove('active');
+            document.getElementById('step2').classList.add('active');
+        }
+
+        // Step 2: Calculate vacation days
+        async function calculateVacationDays() {
+            document.getElementById('calculateBtn').disabled = true;
+            document.getElementById('calculateLoading').style.display = 'block';
+            document.getElementById('error').style.display = 'none';
+            document.getElementById('results').style.display = 'none';
+
+            try {
+                const response = await fetch('/calculate', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        records: extractedData
+                    })
+                });
+
+                const result = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(result.error || 'Error calculando días de vacaciones');
                 }
 
                 displayResults(result);
@@ -193,26 +751,14 @@
                 document.getElementById('error').textContent = 'Error: ' + error.message;
                 document.getElementById('error').style.display = 'block';
             } finally {
-                document.getElementById('processBtn').disabled = false;
-                document.getElementById('loading').style.display = 'none';
+                document.getElementById('calculateBtn').disabled = false;
+                document.getElementById('calculateLoading').style.display = 'none';
             }
-        });
+        }
 
         function displayResults(data) {
             document.getElementById('totalDays').textContent = data.total_non_overlapping_vacation_days;
             document.getElementById('totalPeriods').textContent = data.non_overlapping_vacation_periods.length;
-
-            const dataTableBody = document.getElementById('dataTableBody');
-            dataTableBody.innerHTML = '';
-            
-            data.data.forEach(item => {
-                const row = dataTableBody.insertRow();
-                row.className = item.isVacaciones ? 'vacation-row' : 'contract-row';
-                
-                row.insertCell(0).textContent = item.isVacaciones ? '🏖️ Vacaciones' : '🏥 Contrato Servicio Salud';
-                row.insertCell(1).textContent = item.fechaAlta || '-';
-                row.insertCell(2).textContent = item.fechaBaja || '-';
-            });
 
             const vacationTableBody = document.getElementById('vacationTableBody');
             vacationTableBody.innerHTML = '';

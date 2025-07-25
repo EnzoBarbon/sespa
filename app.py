@@ -4,11 +4,13 @@ from flask import Flask, request, jsonify, render_template
 import camelot
 import pandas as pd
 import datetime
+from ocr_processor import process_image_with_ocr
+from PIL import Image
 
 app = Flask(__name__)
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB max file size
 
-def extract_situaciones(pdf_path, pages="2-5"):
+def extract_situaciones(pdf_path, pages="all"):
     """
     Extract situations from PDF labor life report.
     """
@@ -164,76 +166,156 @@ def calculate_non_overlapping_vacation_days(data):
 def index():
     return render_template('index.html')
 
-@app.route('/process', methods=['POST'])
-def process_pdf():
+@app.route('/extract', methods=['POST'])
+def extract_data():
+    """Step 1: Extract data from PDF or images and return editable records"""
     try:
-        if 'pdf' not in request.files:
-            return jsonify({'error': 'No file uploaded'}), 400
-        
-        file = request.files['pdf']
-        if file.filename == '':
-            return jsonify({'error': 'No file selected'}), 400
-        
-        if not file.filename.lower().endswith('.pdf'):
-            return jsonify({'error': 'File must be a PDF'}), 400
-        
-        # Save uploaded file to temporary location
-        with tempfile.NamedTemporaryFile(delete=False, suffix='.pdf') as temp_file:
-            file.save(temp_file.name)
-            temp_path = temp_file.name
-        
-        try:
-            # Extract data from PDF
-            df = extract_situaciones(temp_path, pages="2-5")
-            
-            # Convert Fecha_Alta to datetime for filtering
-            def parse_date(date_str):
-                try:
-                    return datetime.datetime.strptime(date_str, "%d.%m.%Y")
-                except Exception:
-                    return None
-
-            df["Fecha_Alta_dt"] = df["Fecha_Alta"].apply(parse_date)
-            
-            # Extract only relevant records
-            output_data = []
-            for _, row in df.iterrows():
-                empresa = row["Empresa"]
-                
-                # Check if it's a vacation record
-                if empresa.startswith("VACACIONES RETRIBUIDAS Y NO"):
-                    output_data.append({
-                        "isVacaciones": True,
-                        "fechaAlta": format_date(row["Fecha_Alta"]),
-                        "fechaBaja": format_date(row["Fecha_Baja"])
-                    })
-                # Check if it's a health service contract
-                elif empresa == "SERVICIO DE SALUD DEL PRINCIPADO":
-                    output_data.append({
-                        "isVacaciones": False,
-                        "fechaAlta": format_date(row["Fecha_Alta"]),
-                        "fechaBaja": format_date(row["Fecha_Baja"])
-                    })
-            
-            # Calculate non-overlapping vacation days
-            non_overlapping_vacation_days, vacation_periods = calculate_non_overlapping_vacation_days(output_data)
-            
-            # Prepare response
-            results = {
-                "data": output_data,
-                "total_non_overlapping_vacation_days": non_overlapping_vacation_days,
-                "non_overlapping_vacation_periods": vacation_periods
-            }
-            
-            return jsonify(results)
-            
-        finally:
-            # Clean up temporary file
-            os.unlink(temp_path)
+        # Check if it's PDF or images
+        if 'pdf' in request.files and request.files['pdf'].filename:
+            return extract_pdf()
+        elif 'images' in request.files:
+            return extract_images()
+        else:
+            return jsonify({'error': 'No PDF or images uploaded'}), 400
             
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
+def extract_pdf():
+    """Extract data from PDF"""
+    file = request.files['pdf']
+    if file.filename == '':
+        return jsonify({'error': 'No file selected'}), 400
+    
+    if not file.filename.lower().endswith('.pdf'):
+        return jsonify({'error': 'File must be a PDF'}), 400
+    
+    # Save uploaded file to temporary location
+    with tempfile.NamedTemporaryFile(delete=False, suffix='.pdf') as temp_file:
+        file.save(temp_file.name)
+        temp_path = temp_file.name
+    
+    try:
+        # Extract data from PDF
+        df = extract_situaciones(temp_path, pages="all")
+        
+        # Extract only relevant records
+        output_data = []
+        for _, row in df.iterrows():
+            empresa = row["Empresa"]
+            
+            # Check if it's a vacation record
+            if empresa.startswith("VACACIONES RETRIBUIDAS Y NO"):
+                output_data.append({
+                    "type": "vacation",
+                    "fechaAlta": format_date(row["Fecha_Alta"]),
+                    "fechaBaja": format_date(row["Fecha_Baja"])
+                })
+            # Check if it's a health service contract
+            elif empresa == "SERVICIO DE SALUD DEL PRINCIPADO":
+                output_data.append({
+                    "type": "contract",
+                    "fechaAlta": format_date(row["Fecha_Alta"]),
+                    "fechaBaja": format_date(row["Fecha_Baja"])
+                })
+        
+        return jsonify({"data": output_data, "source": "pdf"})
+        
+    finally:
+        # Clean up temporary file
+        os.unlink(temp_path)
+
+def extract_images():
+    """Extract data from multiple images using OCR"""
+    files = request.files.getlist('images')
+    if not files or all(f.filename == '' for f in files):
+        return jsonify({'error': 'No images selected'}), 400
+    
+    # Filter valid image files
+    valid_files = []
+    for file in files:
+        if file.filename and file.filename.lower().endswith(('.jpg', '.jpeg', '.png')):
+            valid_files.append(file)
+    
+    if not valid_files:
+        return jsonify({'error': 'No valid image files found'}), 400
+    
+    all_data = []
+    image_results = []
+    
+    for file in valid_files:
+        # Save image to temporary location
+        with tempfile.NamedTemporaryFile(delete=False, suffix='.jpg') as temp_file:
+            file.save(temp_file.name)
+            temp_path = temp_file.name
+        
+        try:
+            # Process image with OCR
+            ocr_records = process_image_with_ocr(temp_path)
+            
+            # Convert OCR format to our format
+            image_data = []
+            for record in ocr_records:
+                image_data.append({
+                    "type": "vacation" if record["isVacaciones"] else "contract",
+                    "fechaAlta": record["fechaAlta"],
+                    "fechaBaja": record["fechaBaja"]
+                })
+            
+            # Convert image to base64 for preview
+            import base64
+            with open(temp_path, "rb") as img_file:
+                img_base64 = base64.b64encode(img_file.read()).decode('utf-8')
+            
+            image_results.append({
+                "filename": file.filename,
+                "data": image_data,
+                "image_base64": img_base64
+            })
+            
+            all_data.extend(image_data)
+            
+        finally:
+            # Clean up temporary file
+            os.unlink(temp_path)
+    
+    return jsonify({
+        "data": all_data,
+        "source": "images",
+        "image_results": image_results
+    })
+
+@app.route('/calculate', methods=['POST'])
+def calculate_vacation_days():
+    """Step 2: Calculate non-overlapping vacation days from user-edited data"""
+    try:
+        data = request.get_json()
+        if not data or 'records' not in data:
+            return jsonify({'error': 'No data provided'}), 400
+        
+        # Convert user data to the format expected by calculation function
+        formatted_data = []
+        for record in data['records']:
+            formatted_data.append({
+                "isVacaciones": record['type'] == 'vacation',
+                "fechaAlta": record['fechaAlta'],
+                "fechaBaja": record['fechaBaja']
+            })
+        
+        # Calculate non-overlapping vacation days
+        non_overlapping_vacation_days, vacation_periods = calculate_non_overlapping_vacation_days(formatted_data)
+        
+        # Prepare response
+        results = {
+            "total_non_overlapping_vacation_days": non_overlapping_vacation_days,
+            "non_overlapping_vacation_periods": vacation_periods
+        }
+        
+        return jsonify(results)
+        
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
 if __name__ == '__main__':
-    port = int(os.environ.get('PORT', 5000))
+    port = int(os.environ.get('PORT', 5010))
     app.run(host='0.0.0.0', port=port, debug=False)

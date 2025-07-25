@@ -5,7 +5,7 @@ import requests
 from typing import List, Dict
 import datetime
 
-OPENROUTER_API_KEY = "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"
+OPENROUTER_API_KEY = "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"
 OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions"
 
 def encode_image_to_base64(image_path: str) -> str:
@@ -99,7 +99,7 @@ The response will be automatically structured according to the defined JSON sche
     }
     
     payload = {
-        "model": "mistralai/pixtral-large-2411",  # Mistral's vision model with OCR capabilities
+        "model": "google/gemini-2.5-flash-lite",  # Mistral's vision model with OCR capabilities
         "messages": [
             {
                 "role": "user",
