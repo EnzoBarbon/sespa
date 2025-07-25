@@ -251,7 +251,9 @@ def extract_images():
         
         try:
             # Process image with OCR
+            print(f"Processing image: {file.filename}")
             ocr_records = process_image_with_ocr(temp_path)
+            print(f"OCR returned {len(ocr_records)} records for {file.filename}")
             
             # Convert OCR format to our format
             image_data = []
@@ -261,6 +263,7 @@ def extract_images():
                     "fechaAlta": record["fechaAlta"],
                     "fechaBaja": record["fechaBaja"]
                 })
+            print(f"Converted to {len(image_data)} image_data records")
             
             # Convert image to base64 for preview
             import base64

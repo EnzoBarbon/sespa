@@ -1,6 +1,7 @@
 Flask==2.3.3
 numpy==1.24.3
 pandas==1.5.3
+PyPDF2==2.12.1
 camelot-py[cv]==0.10.1
 opencv-python-headless==4.8.1.78
 ghostscript==0.7

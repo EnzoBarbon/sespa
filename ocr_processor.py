@@ -5,7 +5,7 @@ import requests
 from typing import List, Dict
 import datetime
 
-OPENROUTER_API_KEY = "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"
+OPENROUTER_API_KEY = os.getenv('OPENROUTER_API_KEY', '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')
 OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions"
 
 def encode_image_to_base64(image_path: str) -> str:
@@ -99,7 +99,7 @@ The response will be automatically structured according to the defined JSON sche
     }
     
     payload = {
-        "model": "google/gemini-2.5-flash-lite",  # Mistral's vision model with OCR capabilities
+        "model": "mistralai/pixtral-large-2411",  # Mistral's vision model with OCR capabilities
         "messages": [
             {
                 "role": "user",
@@ -157,11 +157,24 @@ The response will be automatically structured according to the defined JSON sche
     }
     
     try:
-        response = requests.post(OPENROUTER_URL, headers=headers, json=payload)
+        print(f"Making API request for {image_path}...")
+        print(f"Using API key: {OPENROUTER_API_KEY[:20]}...")
+        print(f"Payload model: {payload['model']}")
+        
+        response = requests.post(OPENROUTER_URL, headers=headers, json=payload, timeout=60)
+        print(f"Response status: {response.status_code}")
+        
         response.raise_for_status()
         
         result = response.json()
+        print(f"API response keys: {list(result.keys())}")
+        
+        if 'choices' not in result or not result['choices']:
+            print(f"No choices in response: {result}")
+            return []
+            
         content = result['choices'][0]['message']['content']
+        print(f"Raw API response content: {content[:500]}...")
         
         # Parse structured JSON response
         try:
@@ -182,6 +195,9 @@ The response will be automatically structured according to the defined JSON sche
         except json.JSONDecodeError as e:
             print(f"Error parsing JSON from {image_path}: {e}")
             print(f"Raw content: {content}")
+            # Try to extract records from non-JSON response
+            if "VACACIONES" in content or "SERVICIO DE SALUD" in content:
+                print("Found keywords in response, but couldn't parse JSON. Manual extraction needed.")
             return []
             
     except requests.exceptions.RequestException as e:
@@ -191,7 +207,7 @@ The response will be automatically structured according to the defined JSON sche
                 error_details = e.response.json()
                 print(f"Error details: {error_details}")
             except:
-                print(f"Error response text: {e.response.text}")
+                print(f"Error response text: {e.response.text[:500]}...")
         return []
 
 def process_all_images(images_dir: str = "data/imagenes") -> List[Dict]:
