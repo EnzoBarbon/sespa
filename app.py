@@ -279,10 +279,17 @@ def extract_images():
             image_data = []
             for j, record in enumerate(ocr_records):
                 logger.info(f"Record {j+1}: {record}")
+                
+                # Convert dates from DD.MM.YYYY to DD/MM/YYYY
+                fecha_alta = record["fechaAlta"].replace(".", "/") if record["fechaAlta"] else ""
+                fecha_baja = record["fechaBaja"].replace(".", "/") if record["fechaBaja"] else ""
+                
+                logger.info(f"Date conversion: {record['fechaAlta']} -> {fecha_alta}, {record['fechaBaja']} -> {fecha_baja}")
+                
                 image_data.append({
                     "type": "vacation" if record["isVacaciones"] else "contract",
-                    "fechaAlta": record["fechaAlta"],
-                    "fechaBaja": record["fechaBaja"]
+                    "fechaAlta": fecha_alta,
+                    "fechaBaja": fecha_baja
                 })
             logger.info(f"Converted to {len(image_data)} image_data records")
             

@@ -118,7 +118,7 @@ else:
                 "fechaBaja": format_date(row["Fecha_Baja"])
             })
         # Check if it's a health service contract
-        elif empresa == "SERVICIO DE SALUD DEL PRINCIPADO":
+        elif empresa.startswith("SERVICIO DE SALUD DEL PRINCIPADO"):
             output_data.append({
                 "isVacaciones": False,
                 "fechaAlta": format_date(row["Fecha_Alta"]),
